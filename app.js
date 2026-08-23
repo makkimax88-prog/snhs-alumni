@@ -242,7 +242,21 @@ document.querySelector('.mobile-toggle').onclick = () => {
 document.querySelectorAll('.nav a').forEach(link => link.onclick = () => side.classList.remove('open'));
 
 const dialog = document.querySelector('dialog');
-document.querySelector('#register').onclick = () => dialog.showModal();
+document.querySelector('#register').onclick = async () => {
+  dialog.showModal();
+  try {
+    const supabase = await initializeSupabase();
+    const { data } = await supabase.from('profiles').select('full_name,city,email,batch_year,contact_no').eq('id', currentUser.id).maybeSingle();
+    if (!data) return;
+    profileInputs[0].value = data.full_name || '';
+    profileInputs[1].value = data.city || '';
+    profileInputs[2].value = data.email || '';
+    document.querySelector('[name="batch_year"]').value = data.batch_year || '';
+    document.querySelector('[name="contact_no"]').value = data.contact_no || '';
+  } catch (error) {
+    console.error('Profile could not be loaded:', error);
+  }
+};
 document.querySelector('.close').onclick = () => dialog.close();
 const profileInputs = document.querySelector('#profileForm').querySelectorAll('input');
 profileInputs[0].name = 'full_name';
@@ -264,8 +278,10 @@ document.querySelector('#profileForm').onsubmit = async event => {
   try {
     const supabase = await initializeSupabase();
     const formData = new FormData(form);
+    const fullName = formData.get('full_name')?.toString().trim();
+    if (!fullName) throw new Error('Please enter your full name.');
     if (!formData.get('privacy_accepted')) throw new Error('Please accept the Data Privacy Act notice.');
-    const { error } = await supabase.from('profiles').upsert({ id: currentUser.id, full_name: formData.get('full_name'), city: formData.get('city'), email: formData.get('email'), batch_year: Number(formData.get('batch_year')), contact_no: formData.get('contact_no'), batch: `Class of ${formData.get('batch_year')}`, privacy_accepted: true });
+    const { error } = await supabase.from('profiles').upsert({ id: currentUser.id, full_name: fullName, city: formData.get('city'), email: formData.get('email'), batch_year: Number(formData.get('batch_year')), contact_no: formData.get('contact_no'), batch: `Class of ${formData.get('batch_year')}`, privacy_accepted: true });
     if (error) throw error;
   } catch (error) {
     saveButton.disabled = false;
@@ -276,6 +292,8 @@ document.querySelector('#profileForm').onsubmit = async event => {
   }
   document.querySelector('#register').textContent = 'Registered';
   document.querySelector('#register').style.background = 'var(--teal)';
+  document.querySelector('.profile b').textContent = fullName;
+  document.querySelector('.profile small').textContent = `Class of ${formData.get('batch_year')}`;
   dialog.close();
 };
 
@@ -548,7 +566,7 @@ const loadSupabaseData = async () => {
     renderAlumni();
     updateOnlineCount(0);
     document.querySelector('.registry-total strong').textContent = alumni.length;
-      const latestProfile = profilesResult.data[0];
+      const latestProfile = profilesResult.data.find(profile => profile.id === currentUser.id);
       if (latestProfile) {
         document.querySelector('.profile b').textContent = latestProfile.full_name;
         document.querySelector('.profile small').textContent = latestProfile.batch || 'Alumni member';
