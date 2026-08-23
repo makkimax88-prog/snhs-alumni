@@ -8,7 +8,7 @@
   "description": "A shared space for the SNHS alumni community.",
   "icons": [
     {
-      "src": "./alumni-portal/assets/721134729_1554145309760098_3243896221636783487_n.jpg",
+      "src": "./assets/721134729_1554145309760098_3243896221636783487_n.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any maskable"

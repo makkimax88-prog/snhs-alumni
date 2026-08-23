@@ -1,4 +1,4 @@
-document.head.insertAdjacentHTML('beforeend', '<link rel="manifest" href="manifest.json"><link rel="icon" href="alumni-portal/assets/721134729_1554145309760098_3243896221636783487_n.jpg" type="image/jpeg"><link rel="apple-touch-icon" href="alumni-portal/assets/721134729_1554145309760098_3243896221636783487_n.jpg">');
+document.head.insertAdjacentHTML('beforeend', '<link rel="manifest" href="./manifest.json"><link rel="icon" href="./assets/721134729_1554145309760098_3243896221636783487_n.jpg" type="image/jpeg"><link rel="apple-touch-icon" href="./assets/721134729_1554145309760098_3243896221636783487_n.jpg">');
 
 if (!window.SNHS_SUPABASE_URL || !window.SNHS_SUPABASE_ANON_KEY) {
   const configRequest = new XMLHttpRequest();
@@ -40,7 +40,7 @@ document.querySelector('.welcome .eyebrow').textContent = new Intl.DateTimeForma
   day: 'numeric',
   year: 'numeric'
 }).format(new Date()).toUpperCase();
-const schoolLogo = 'alumni-portal/assets/721134729_1554145309760098_3243896221636783487_n.jpg';
+const schoolLogo = './assets/721134729_1554145309760098_3243896221636783487_n.jpg';
 document.querySelector('.mark').innerHTML = `<img src="${schoolLogo}" alt="Sto. Niño High School logo">`;
 document.querySelector('.art').firstChild.textContent = '';
 document.querySelector('.art').insertAdjacentHTML('afterbegin', `<img src="${schoolLogo}" alt="Sto. Niño High School logo">`);
@@ -137,14 +137,15 @@ document.body.append(countdown);
 let countdownInterval;
 const setCountdown = event => {
   clearInterval(countdownInterval);
-  if (!event?.event_date) {
+  const eventTime = event?.event_date ? new Date(event.event_date).getTime() : NaN;
+  if (!event?.event_date || !Number.isFinite(eventTime) || eventTime <= Date.now()) {
     countdown.hidden = true;
     return;
   }
   countdown.hidden = false;
   countdown.querySelector('.countdown-title').textContent = event.title;
   const update = () => {
-    const remaining = Math.max(0, new Date(event.event_date).getTime() - Date.now());
+    const remaining = Math.max(0, eventTime - Date.now());
     const seconds = Math.floor(remaining / 1000);
     const values = { days: Math.floor(seconds / 86400), hours: Math.floor(seconds / 3600) % 24, minutes: Math.floor(seconds / 60) % 60, seconds: seconds % 60 };
     Object.entries(values).forEach(([unit, value]) => { countdown.querySelector(`[data-unit="${unit}"]`).textContent = String(value).padStart(2, '0'); });
